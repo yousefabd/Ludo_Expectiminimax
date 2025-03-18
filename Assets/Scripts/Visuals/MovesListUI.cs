@@ -37,7 +37,7 @@ public class MovesListUI : MonoBehaviour
         foreach(Transform moveTransform in movesList)
         {
             int number = int.Parse(moveTransform.Find("moveValue").GetComponent<TextMeshProUGUI>().text);
-            if(number == chosenNumber)
+            if(number == chosenNumber && moveTransform.gameObject.activeSelf)
             {
                 moveTransform.gameObject.SetActive(false);
                 break;

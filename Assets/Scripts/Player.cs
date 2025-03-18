@@ -9,7 +9,8 @@ public class Player
     private readonly int spawnIndex;
     private readonly int winningIndex;
     private readonly Team team;
-    private PlayerBase playerBase;
+    //private PlayerBase playerBase;
+    private Board board;
 
     private PlayerState currentPlayerState;
     private List<int> movesList;
@@ -17,17 +18,21 @@ public class Player
 
     public event Action<int> OnDiceRolled;
     public event Action<List<int>> OnFinishedRollingDice;
-    public event Action<List<int>,int> OnChoseNumber;
+    public event Action<List<int>, int> OnChoseNumber;
     public event Action OnFinishedMoving;
     public event Action OnPassTurn;
-    public Player(PlayerBase playerBase, Team team, int spawnIndex, int winningIndex)
+    public event Action OnKilled;
+
+    int testIndex = 0;
+    int[] test = new int[3] { 6, 6, 1 };
+    public Player(Board board, Team team, int spawnIndex, int winningIndex)
     {
         movesList = new List<int>();
         currentPlayerState = PlayerState.RollingDice;
+        this.board = board;
         this.spawnIndex = spawnIndex;
         this.winningIndex = winningIndex;
         this.team = team;
-        this.playerBase = playerBase;
     }
 
     public void ClearPuzzlePiece()
@@ -37,6 +42,7 @@ public class Player
     public void Ready()
     {
         currentPlayerState = PlayerState.RollingDice;
+        testIndex = 0;
     }
     public void SelectPuzzlePiece(PuzzlePiece selectedPuzzlePiece)
     {
@@ -48,6 +54,7 @@ public class Player
     private int RollDice()
     {
         return UnityEngine.Random.Range(0, 6) + 1;
+        //return test[testIndex++];
     }
     public int ChooseMove(int move = -1)
     {
@@ -78,20 +85,20 @@ public class Player
             return false;
         if (!movesList.Contains(incrementValue) || puzzlePiece == null)
             return false;
-        if (Board.Instance.CanMove(puzzlePiece, incrementValue, out newPuzzlePiecePosition))
+        if (board.CanMove(puzzlePiece, incrementValue, out newPuzzlePiecePosition))
         {
             return true;
         }
         return false;
 
     }
-    public bool CanSpawn()
+    public bool CanSpawn(out PuzzlePiece basePuzzlePiece)
     {
-        return (!playerBase.Empty()) && movesList.Contains(6) && currentPlayerState == PlayerState.Moving;
+        return (board.TryGetPieceFromBase(team,out basePuzzlePiece)) && movesList.Contains(6) && currentPlayerState == PlayerState.Moving;
     }
     public bool WillPass()
     {
-        PuzzlePiece[] playerPuzzlePieces = playerBase.GetPuzzlePieces();
+        PuzzlePiece[] playerPuzzlePieces = board.GetPuzzlePiecesOf(team);
         //check if all moves are 6
         bool all_six = false;
         if (movesList.Count == 3)
@@ -103,7 +110,7 @@ public class Player
             }
         }
         //check if we can spawn
-        if (CanSpawn() && !all_six)
+        if (CanSpawn(out _) && !all_six)
             return false;
         //check if we can move
         foreach(var puzzlePiece in playerPuzzlePieces)
@@ -116,15 +123,20 @@ public class Player
         }
         return true;
     }
-    public void Move(int incrementValue)
+    public bool Move(int incrementValue)
     {
         if (CanMove(selectedPuzzlePiece, incrementValue, out int? movePosition))
         {
-            Board.Instance.MovePuzzlePiece(selectedPuzzlePiece, selectedPuzzlePiece.GetCurrentPosition(), (int)movePosition ,incrementValue);
+            bool killed = board.MovePuzzlePiece(selectedPuzzlePiece, selectedPuzzlePiece.GetCurrentPosition(), (int)movePosition ,incrementValue);
             movesList.Remove(incrementValue);
             OnChoseNumber?.Invoke(movesList, incrementValue);
-            if (!movesList.Any())
+            if (killed)
             {
+                OnKilled?.Invoke();
+            }
+            else if (!movesList.Any())
+            {
+                currentPlayerState = PlayerState.Finished;
                 OnFinishedMoving?.Invoke();
             }
             else if (WillPass())
@@ -133,15 +145,32 @@ public class Player
                 movesList.Clear();
                 currentPlayerState = PlayerState.Finished;
             }
+            return true;
         }
+        return false;
     }
     public void Spawn()
     {
-        if (CanSpawn())
+        if (CanSpawn(out PuzzlePiece puzzlePiece))
         {
-            playerBase.SpawnPuzzlePiece();
+            bool killed = board.Spawn(puzzlePiece);
             movesList.Remove(6);
             OnChoseNumber?.Invoke(movesList, 6);
+            if (killed)
+            {
+                OnKilled?.Invoke();
+            }
+            else if (!movesList.Any())
+            {
+                OnFinishedMoving?.Invoke();
+                currentPlayerState = PlayerState.Finished;
+            }
+            else if (WillPass())
+            {
+                OnPassTurn?.Invoke();
+                movesList.Clear();
+                currentPlayerState = PlayerState.Finished;
+            }
         }
     }
     public int GetSpawnIndex()
@@ -165,5 +194,29 @@ public class Player
     public List<int> GetMovesList()
     {
         return movesList;
+    }
+    public void SetMovesList(List<int> movesList)
+    {
+        foreach(int move in movesList) {
+            this.movesList.Add(move);
+        }
+    }
+    public void SetPLayerState(PlayerState playerState)
+    {
+        this.currentPlayerState = playerState;
+    }
+    public int GetScore()
+    {
+        PuzzlePiece[] playerPuzzlePieces = board.GetPuzzlePiecesOf(team);
+        int score = 0;
+        foreach (var piece in playerPuzzlePieces)
+        {
+            score += piece.GetCurrentPathTaken();
+            if (!piece.InBase())
+            {
+                score += 200;
+            }
+        }
+        return score;
     }
 }

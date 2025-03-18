@@ -1,6 +1,6 @@
 [System.Serializable]
 public enum Team
 {
-    Player,Computer
+    Red,Green,Yellow,Blue
 }
 

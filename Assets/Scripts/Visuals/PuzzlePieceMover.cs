@@ -19,7 +19,7 @@ public class PuzzlePieceMover : MonoBehaviour
     private int currentWaypointIndex = 0;
     private void Start()
     {
-        GetComponent<PuzzlePiece>().OnMove += PuzzlePieceMover_OnMove;
+        GetComponent<PuzzlePieceTransform>().OnPuzzlePieceMoved += PuzzlePieceMover_OnMove;
         currentPieceState = PuzzlePieceState.IDLE;
 
     }
@@ -31,12 +31,24 @@ public class PuzzlePieceMover : MonoBehaviour
         {
             waypointPath.Add(BoardTransformHolder.Instance.GetWorldPosition(newPosition));
         }
-        else if(newPosition < Board.Instance.GetWhiteCellsCount()) //normal path
+        else if(newPosition == -1)//to base
+        {
+            waypointPath.Add(PlayerBasesTransformHolder.Instance.GetBaseWorldPosition(GetComponent<PuzzlePieceTransform>().GetPuzzlePiece()));
+        }
+        else if(newPosition < Board.GetWhiteCellsCount()) //normal path
         {
             for(int i=oldPosition;i<oldPosition + incrementation; i++)
             {
-                int nextPositionFixed = Board.Instance.GetFixedPosition(i+1);
+                int nextPositionFixed = Board.GetFixedPosition(i+1);
                 waypointPath.Add(BoardTransformHolder.Instance.GetWorldPosition(nextPositionFixed));
+            }
+        }
+        else if(oldPosition > Board.GetWhiteCellsCount()) // inside winning path
+        {
+            for(int i=oldPosition; i<oldPosition + incrementation; i++)
+            {
+
+                waypointPath.Add(BoardTransformHolder.Instance.GetWorldPosition(i+1));
             }
         }
         else //winning path

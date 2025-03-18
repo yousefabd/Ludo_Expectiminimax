@@ -22,32 +22,13 @@ public class PlayerUI : MonoBehaviour
         MouseInputManager.Instance.OnPuzzlePieceSelected += MouseInputManager_OnPuzzlePieceSelected;
         MouseInputManager.Instance.OnPuzzlePieceSpawned += MouseInputManager_OnPuzzlePieceSpawned;
         MouseInputManager.Instance.OnClearPuzzlePiece += MouseInputManager_OnClearPuzzlePiece;
-        GameManager.Instance.OnPlayerFinishedRollingDice += GameManager_OnPlayerFinishedRollingDice;
-        GameManager.Instance.OnPlayerFinishedMoving += GameManager_OnPlayerFinishedMoving;
-        GameManager.Instance.OnPlayerPassedTurn += GameManager_OnPlayerPassedTurn;
         rollDiceButton.onClick.AddListener(() => {
             OnRollDiceClicked?.Invoke();
         });
     }
-
-    private void GameManager_OnPlayerPassedTurn()
+    private void MouseInputManager_OnPuzzlePieceSelected(PuzzlePiece puzzlePiece,Vector3 arg2)
     {
-        StartCoroutine(PassAfterCooldown());
-    }
-
-    private void GameManager_OnPlayerFinishedMoving()
-    {
-        rollDiceButton.interactable = true;
-    }
-
-    private void GameManager_OnPlayerFinishedRollingDice(List<int> obj)
-    {
-        rollDiceButton.interactable = false;
-    }
-
-    private void MouseInputManager_OnPuzzlePieceSelected(PuzzlePiece puzzlePiece)
-    {
-        OnSelectPuzzlePiece?.Invoke(puzzlePiece.GetComponent<PuzzlePiece>());
+        OnSelectPuzzlePiece?.Invoke(puzzlePiece);
     }
     private void MouseInputManager_OnPuzzlePieceSpawned(PuzzlePiece puzzlePiece)
     {
@@ -58,10 +39,11 @@ public class PlayerUI : MonoBehaviour
     {
         OnClearPuzzlePiece?.Invoke();
     }
-
-    private IEnumerator PassAfterCooldown()
+    private void Update()
     {
-        yield return new WaitForSeconds(1f);
-        rollDiceButton.interactable = true;
+        bool IsPlayerTurn = GameManager.Instance.GetGame().GetCurrentPlayerTeam().Equals(Team.Red);
+        bool IsRollingDice = GameManager.Instance.GetGame().GetCurrentPlayer().GetPlayerState().Equals(PlayerState.RollingDice);
+        rollDiceButton.interactable = IsRollingDice && IsPlayerTurn;
+        
     }
 }

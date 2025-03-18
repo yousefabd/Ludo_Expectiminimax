@@ -179,8 +179,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2520660272473003390}
   - component: {fileID: 1866463269655457662}
-  - component: {fileID: 2655784266486159887}
   - component: {fileID: 5100220148553816108}
+  - component: {fileID: 8797661271275008187}
   m_Layer: 0
   m_Name: PuzzlePiece Yellow
   m_TagString: Untagged
@@ -249,20 +249,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &2655784266486159887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5129118035101179432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c38337119b47784289e3c3b1f6bca24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentPosition: 0
-  owner: 1
 --- !u!114 &5100220148553816108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,3 +261,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6a70d10091791c4c809fbb4ff3a1435, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8797661271275008187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5129118035101179432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85a50cd7f47c70b4187418f3c13629c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 2
